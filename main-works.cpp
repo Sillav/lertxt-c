@@ -1,240 +1,468 @@
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <conio.h>
 #include <string.h>
-#include <windows.h>
+#include <time.h>
+#include <cstdlib>
+#include <iostream>
 
-char produtos[15][50], valor_produtos[15][50], users[15][50], senhas[15][50];
-bool login_aut, status_produto[15], status_carrinho[100];
-int carrinho[100];
+char /*clientes*/ idcliente[200][10], nome[200][50], cidade[200][30], uf[200][3], documento[200][20], telefone[200][50];
+char linha[200], tmp[200];
+char /*parcelas*/ idparcela[200][50], idcliente_p[200][50], datavenc[200][50], datapag[200][50], valor_p[200][50], codbanco[200][50];
+int tot, p, col;
+bool status_cliente[200], status_parcela[200];
+FILE *file;
 
-void enche_carrinho()
+//----------------------------------------------------------------------------
+//--------------LEITURA DO ARQUIVO
+void separa()
 {
-    int i;
-    for (i = 1; i < 3; i++)
+    p = 0;
+    while (linha[col] != '"' && col < strlen(linha))
     {
-        carrinho[i] = 1;
-        status_carrinho[i] = true;
+        tmp[p] = linha[col];
+        col++; //posicao na linha
+        p++;   //posicao no campo
     }
-    for (i = 3; i < 3; i++)
-    {
-        carrinho[i] = 3;
-        status_carrinho[i] = true;
-    }
-    for (i = 5; i < 100; i++)
-    {
-        carrinho[i] = 0;
-        status_carrinho[i] = false;
-    }
+    col = col + 3;
+    tmp[p] = '\0';
 }
 
-void add_carrinho(int valor1)
+void le_dados(int valor)
 {
-    int i;
-    for (i = 1; i < 100; i++)
+    char *result;
+
+    if (valor == 0)
     {
-        if (carrinho[i] == 0 && status_carrinho[i] == false)
+        file = fopen("CLIENTES.txt", "r");
+        if (file == NULL)
         {
-            carrinho[i] = valor1;
-        }
-        break;
-    }
-}
-
-void mostra_info(int valor1)
-{
-    int tmp;
-
-    while (tmp != 2)
-    {
-        system("cls");
-        printf("-----------------PRODUTO-----------------\n");
-        printf("   NOME:   %s\n", produtos[valor1]);
-        printf("   VALOR:  %s\n", valor_produtos[valor1]);
-        printf("   ADICIONAR AO CARRINHO [1]\n");
-        printf("   VOLTAR                [2]");
-        printf("\n");
-        printf("\n");
-        printf("   DIGITE: ");
-        scanf("%i", &tmp);
-
-        if (tmp == 1)
-        {
-            add_carrinho(valor1);
+            printf("ERRO ao abrir o arquivo CLIENTES.txt\n");
         }
     }
-}
-
-void busca()
-{
-    int i;
-    char busca_tmp[15];
-    char sair[3] = "2";
-    bool busca;
-
-    while (strcmp(busca_tmp, sair) != 0)
+    if (valor == 1)
     {
-        system("cls");
-        printf("---------------BUSCA---------------\n");
-        printf(" Digite [2] para voltar!\n");
-        printf(" Digite um Produto (ex: Batata): ");
-        scanf("%s", &busca_tmp);
-        for (i = 0; i < 16; i++)
+        file = fopen("PARCELAS.txt", "r");
+        if (file == NULL)
         {
-            if (strcmp(busca_tmp, produtos[i]) == 0 && busca_tmp != "2")
+            printf("ERRO ao abrir o arquivo PARCELAS.txt\n");
+        }
+    }
+    if (file != NULL)
+    {
+        tot = 0;
+        while (!feof(file))
+        {
+            if (valor == 0)
             {
-                mostra_info(i);
+                result = fgets(linha, 200, file);
+                if (linha[strlen(linha) - 1] == '\n')
+                {
+                    linha[strlen(linha) - 1] = '\0';
+                }
             }
-            else
+
+            if (valor == 1)
             {
-                busca = false;
+                result = fgets(linha, 200, file);
+                if (linha[strlen(linha) - 1] == '\n')
+                {
+                    linha[strlen(linha) - 1] = '\0';
+                }
             }
+            col = 1;
+
+            if (valor == 0)
+            {
+                separa();
+                strcpy(idcliente[tot], tmp);
+                separa();
+                strcpy(nome[tot], tmp);
+                separa();
+                strcpy(cidade[tot], tmp);
+                separa();
+                strcpy(uf[tot], tmp);
+                separa(); //lixo1
+                separa();
+                strcpy(telefone[tot], tmp);
+                separa(); //lixo
+                separa();
+                strcpy(documento[tot], tmp);
+            }
+
+            if (valor == 1)
+            {
+                separa();
+                strcpy(idparcela[tot], tmp);
+                separa();
+                strcpy(idcliente_p[tot], tmp);
+                separa();
+                strcpy(datavenc[tot], tmp);
+                separa();
+                strcpy(datapag[tot], tmp);
+                separa();
+                strcpy(valor_p[tot], tmp);
+                separa();
+                strcpy(codbanco[tot], tmp);
+            }
+            tot++;
         }
-        if (busca == false)
-        {
-            printf("Esse produto não está cadastrado!!\n");
-            system("pause");
-        }
+        fclose(file);
+        tot--;
     }
 }
 
-void lista_produtos()
+//----------------------------------------------------------------------------
+//--------MOSTRADORES
+void mostra_info_parcela(int valor)
 {
-    int i;
-    system("cls");
-    printf("-------------LISTA DE PRODUTOS-------------\n");
-    for (i=1;i<5;i++)
+    printf("---------------------------------------------------DADOS DAS PARCELAS---------------------------------------------------\n");
+    printf(" ID    ID CLIENTE   VALOR      DATA DE VENCIMENTO     DATA DE PAGAMENTO      ESTADO       TELEFONE(S)              DOCUMENTO\n", idparcela[valor]);
+    printf("    VALOR:                  %s\n", valor_p[valor]);
+    printf("    DATA DE VENCIMENTO:     %s\n", datavenc[valor]);
+    if (codbanco[valor] == "0")
     {
-        if (status_produto[i] == true)
-        {
-            printf("   NOME:   %s\n", produtos[i]);
-            printf("   VALOR:  %s\n", valor_produtos[i]);
-            printf("\n");
-        }
+        printf("    STATUS:        PAGO EM DINHEIRO!", valor_p[valor]);
     }
-    system("pause");
-}
-
-void mostra_carrinho()
-{
-    int i;
-
-    system("cls");
-    printf("-----------MEU CARRINHO-----------\n");
-    for (i = 1; i < 5; i++)
+    else
     {
-        printf("   PRODUTO %i\n", i);
-        printf("   NOME:   %s\n", produtos[1]);
-        printf("   VALOR:  %s\n", valor_produtos[1]);
-        printf("\n");
+        printf("    CÓDIGO DO BANCO:        %s", codbanco[valor]);
     }
     printf("\n");
+    printf("\n");
     system("pause");
+    system("cls");
 }
+
+void mostra_info_cliente(int valor)
+{
+    int x;
+
+    system("cls");
+    printf("---------------------------------------------------DADOS DOS CLIENTES---------------------------------------------------\n");
+    printf(" ID    NOME                                          CIDADE       ESTADO       TELEFONE(S)              DOCUMENTO\n");
+    for(x=0;x<=tot;x++){
+        printf(" %s    %s                                            %s           %s           %s                       %s", idcliente[x], nome[x], cidade[x], uf[x], telefone[x], documento[x]);
+    }
+    printf("\n");
+    printf("\n");
+    system("pause");
+    system("cls");
+}
+
+void mostra_tudo()
+{
+    for (int x = 0; x < tot; x++)
+    {
+        printf("%s %s %s %s %s %s\n", idcliente[x], nome[x], cidade[x], uf[x], telefone[x], documento[x]);
+    }
+    for (int x = 0; x < tot; x++)
+    {
+        printf("%s %s %s %s %s %s\n", idparcela[x], idcliente_p[x], datavenc[x], datapag[x], valor_p[x], codbanco[x]);
+    }
+}
+
+void mostra_data()
+{
+    int i;
+    for (i = 0; i <= tot; i++)
+    {
+        printf("%s\n", datavenc[i]);
+    }
+}
+//----------------------------------------------------------------------------
+//--------------------BUSCAS
+void busca_parcela(char busca[10])
+{
+    int i, cont;
+    for (i = 0; i <= tot; i++)
+    {
+        if (strcmp(busca, idparcela[i]) == 0)
+        {
+            mostra_info_parcela(i);
+        }
+    }
+}
+
+void busca_cliente(char busca[30])
+{
+    int i, cont;
+    for (i = 0; i <= tot; i++)
+    {
+        if (strcmp(busca, idcliente[i]) == 0)
+        {
+            mostra_info_cliente(i);
+            system("pause");
+            system("cls");
+        }
+    }
+}
+
+void busca_menu()
+{
+    char busca_tmp[10];
+    int b3, b4;
+
+    while (b3 != 3)
+    {
+        printf("-------------------------\n");
+        printf("  BUSCAR CLIENTES: [1] \n");
+        printf("  BUSCAR PARCELAS: [2] \n");
+        printf("  VOLTAR:          [3] \n");
+        printf("-------------------------\n");
+        printf("\n");
+        printf("\n");
+        printf("DIGITE: ");
+        scanf("%i", &b3);
+
+        if (b3 == 1)
+        {
+            system("cls");
+            printf("------------------------------\n");
+            printf("   BUSCAR POR ID:        [1] \n");
+            printf("   BUSCAR POR NOME:      [2] \n");
+            printf("------------------------------\n");
+            printf("\n");
+            printf("\n");
+            printf("DIGITE: ");
+            scanf("%i", &b4);
+            if (b4 == 1)
+            {
+                printf("----------------------------\n");
+                printf("\n");
+                printf("  DIGITE A ID DO CLIENTE: ");
+                scanf("%s", &busca_tmp);
+                system("cls");
+                busca_cliente(busca_tmp);
+            }
+            if (b4 == 2)
+            {
+                printf("----------------------------\n");
+                printf("\n");
+                printf("  DIGITE O NOME DO CLIENTE: ");
+                scanf("%s", &busca_tmp);
+                system("cls");
+                busca_cliente(busca_tmp);
+            }
+        }
+        if (b3 == 2)
+        {
+            system("cls");
+            printf("----------------------------------------\n");
+            printf("BUSCAR POR ID:                [1]: \n");
+            printf("BUSCAR POR CÓD. VENCIMENTO:   [2]: \n");
+            printf("BUSCAR POR CÓD. CLIENTE:      [3]: \n");
+            printf("\n");
+            printf("\n");
+            printf("DIGITE: ");
+            scanf("%i", &b4);
+        }
+    }
+}
+
+//----------------------------------------------------------------------------
+//-------------------ALTERAR DADOS
+void altera_parcela()
+{
+    char busca_tmp[10];
+
+    printf("----------------------\n");
+    printf("DIGITE A ID DA PARCELA (XXXXX/X): ");
+    scanf("%s", &busca_tmp);
+    busca_parcela(busca_tmp);
+}
+
+void altera_dados()
+{
+    int b2;
+
+    while (b2 != 3)
+    {
+        printf("------------------------------------\n");
+        printf("ALTERAR DADOS DE UM CLIENTE:     [1]\n");
+        printf("ALTERAR DADOS DE UMA PARCELA:    [2]\n");
+        printf("VOLTAR:    [3]\n");
+        printf("------------------------------------\n");
+        printf("\n");
+        printf("\n");
+        printf("DIGITE: ");
+        scanf("%i", &b2);
+
+        if (b2 == 2)
+        {
+            system("cls");
+            altera_parcela();
+        }
+    }
+}
+
+//----------------------------------------------------------------------------
+
+void ordenarParcelasEmOrdemCrescente()
+{
+    char auxiliar[50];
+
+    for (int x = 0; x < 76; x++)
+    {
+        for (int j = x + 1; j < 76; j++)
+        {
+            float tempValor1 = atof(idparcela[x]);
+            float tempValor2 = atof(idparcela[j]);
+            if (tempValor1 > tempValor2)
+            {
+                //IDPARCELA
+                strcpy(auxiliar, idparcela[x]);
+                strcpy(idparcela[x], idparcela[j]);
+                strcpy(idparcela[j], auxiliar);
+
+                //VALOR
+                strcpy(auxiliar, valor_p[x]);
+                strcpy(valor_p[x], valor_p[j]);
+                strcpy(valor_p[j], auxiliar);
+
+                //ID CLIENTE PARCELA
+                strcpy(auxiliar, idcliente_p[x]);
+                strcpy(idcliente_p[x], idcliente_p[j]);
+                strcpy(idcliente_p[j], auxiliar);
+
+                //DATA VENCIMENTO
+                strcpy(auxiliar, datavenc[x]);
+                strcpy(datavenc[x], datavenc[j]);
+                strcpy(datavenc[j], auxiliar);
+
+                //DATA PAGAMENTO
+                strcpy(auxiliar, datapag[x]);
+                strcpy(datapag[x], datapag[j]);
+                strcpy(datapag[j], auxiliar);
+
+                //COD BANCO
+                strcpy(auxiliar, codbanco[x]);
+                strcpy(codbanco[x], codbanco[j]);
+                strcpy(codbanco[j], auxiliar);
+            }
+        }
+    }
+}
+
+//----------------------------------------------------------------------------
+
+void listacliente()
+{
+    int b1;
+    while (b1 != 3)
+    {
+        printf("-------------------------------------\n");
+        printf("   CLASSIFICAR POR ID:                 [1]\n");
+        printf("   CLASSIFICAR POR ORDEM ALFABETICA:   [2]\n");
+        printf("   VOLTAR:                             [3]\n");
+        printf("-------------------------------------\n");
+        printf("\n");
+        printf("\n");
+        printf("DIGITE: ");
+        scanf("%i", &b1);
+
+        if (b1 == 1)
+        {
+        }
+        if (b1 == 2)
+        {
+        }
+    }
+}
+
+//----------------------------------------------------------------------------
+
+void listaparcela()
+{
+    int b1;
+    while (b1 != 3)
+    {
+        printf("-------------------------------------\n");
+        printf("   CLASSIFICAR POR ID DA PARCELA:       [1]\n");
+        printf("   CLASSIFICAR POR DATA DE VENCIMENTO:  [2]\n");
+        printf("   VOLTAR:                              [3]\n");
+        printf("-------------------------------------\n");
+        printf("\n");
+        printf("\n");
+        printf("DIGITE: ");
+        scanf("%i", &b1);
+
+        if (b1 == 1)
+        {
+            ordenarParcelasEmOrdemCrescente();
+
+        }
+        if (b1 == 2)
+        {
+        }
+    }
+}
+
+//----------------------------------------------------------------------------
 
 void menu()
 {
-    int tmp1, i;
+    int b1, val, lixo;
+    b1 = 0;
+    val = 1;
 
-    strcpy(produtos[1], "Batata");
-    strcpy(valor_produtos[1], "R$ 12,50");
-    strcpy(produtos[2], "Brócolis");
-    strcpy(valor_produtos[2], "R$ 9,35");
-    strcpy(produtos[3], "Melância");
-    strcpy(valor_produtos[3], "R$ 35,50");
-    strcpy(produtos[4], "Amora");
-    strcpy(valor_produtos[4], "R$ 18,00");
-    strcpy(produtos[5], "Tomate");
-    strcpy(valor_produtos[5], "R$ 5,89");
-    strcpy(produtos[6], "Alface");
-    strcpy(valor_produtos[6], "R$ 2,50");
-    strcpy(produtos[7], "Beterraba");
-    strcpy(valor_produtos[7], "R$ 6,50");
-
-    while (tmp1 != 4)
-    {
-        if (login_aut == true)
-        {
-            system("cls");
-            printf("-------------------MENU-------------------\n");
-            printf(" BUSCAR PRODUTO                [1]\n");
-            printf(" EXIBIR LISTA DE PRODUTOS      [2]\n");
-            printf(" MOSTRAR MEU CARRINHO          [3]\n");
-            printf(" SAIR                          [4]\n");
-            printf("\n");
-            printf("\n");
-            printf(" DIGITE:");
-            scanf("%i", &tmp1);
-
-            if (tmp1 == 1)
-            {
-                busca();
-            }
-            if (tmp1 == 2)
-            {
-                lista_produtos();
-            }
-            if (tmp1 == 3)
-            {
-                mostra_carrinho();
-            }
-        }
-    }
-}
-
-void login()
-{
-    char tmp1[15], tmp2[15];
-    int i;
-    bool user, pass;
-
-    strcpy(users[0], "admin.com");
-    strcpy(senhas[0], "admin123");
-    while (login_aut == false)
+    while (b1 != 7)
     {
         system("cls");
-        printf("login: %s\n", users[0]);
-        printf("senha: %s\n", senhas[0]);
-        printf("------------LOGIN------------\n");
-        printf("   Digite seu e-mail: ");
-        scanf("%s", &tmp1);
-        printf("%s\n", tmp1);
-        printf("   Digite sua senha: ");
-        scanf("%s", &tmp2);
-        printf("%s\n", tmp2);
+        printf("-------------------------------------\n");
+        printf("   REALIZAR BUSCA:             [1]\n");
+        printf("   EXIBIR LISTA DE CLIENTES:   [2]\n");
+        printf("   EXIBIR LISTA DE PARCELAS:   [3]\n");
+        printf("   ALTERAR DADOS:              [4]\n");
+        printf("   MOSTRAR DATAS:              [5]\n");
+        printf("   SAIR:                       [7]\n");
+        printf("-------------------------------------\n");
+        printf("\n");
+        printf("\n");
+        printf("DIGITE: ");
+        scanf("%i", &b1);
 
-        for (i = 0; i < 16; i++)
+        if (b1 == 1)
         {
-            if (strcmp(users[i], tmp1) == 0 && strcmp(senhas[i], tmp2) == 0)
-            {
-                user = true;
-                pass = true;
-            }
+            system("cls");
+            busca_menu();
         }
 
-        if (user == true && pass == true)
+        if (b1 == 2)
         {
-            login_aut = true;
+            system("cls");
+            listacliente();
         }
-        else
+
+        if (b1 == 3)
         {
-            printf("Usuário ou Senhas Incorretos!!!\n");
+            system("cls");
+            altera_dados();
+        }
+        if (b1 == 3)
+        {
+            system("cls");
+            mostra_data();
+            printf("\n");
+            printf("\n");
             system("pause");
+            system("cls");
         }
     }
 }
 
+//----------------------------------------------------------------------------
 int main()
 {
-    int i;
-    UINT CPAGE_UTF8 = 65001;
-    UINT CPAGE_DEFAULT = GetConsoleOutputCP();
-    SetConsoleOutputCP(CPAGE_UTF8);
-    login();
-    enche_carrinho();
-    for (i = 1; i < 5; i++)
-    {
-        status_produto[i] = true;
-    }
+    system("cls");
+    le_dados(0);
+    le_dados(1);
+    mostra_tudo();
+    system("cls");
+    printf("DADOS IMPORTADOS COM SUCESSO!\n");
+    printf("\n");
+    printf("\n");
+    system("pause");
+    system("cls");
     menu();
 }
