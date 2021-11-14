@@ -5,13 +5,24 @@
 #include <time.h>
 #include <cstdlib>
 #include <iostream>
+#include <windows.h>
 
 char /*clientes*/ idcliente[200][10], nome[200][50], cidade[200][30], uf[200][3], documento[200][20], telefone[200][50];
 char linha[200], tmp[200];
 char /*parcelas*/ idparcela[200][50], idcliente_p[200][50], datavenc[200][50], datapag[200][50], valor_p[200][50], codbanco[200][50];
+char /*bancos*/ bancos[5][10];
 int tot, p, col;
 bool status_cliente[200], status_parcela[200];
 FILE *file;
+
+void enche_bancos()
+{
+    strcpy(bancos[0], "DINHEIRO");
+    strcpy(bancos[1], "Banco Do Brasil");
+    strcpy(bancos[2], "Caixa Econômica");
+    strcpy(bancos[3], "Bradesco");
+    strcpy(bancos[4], "Nubank");
+}
 
 //----------------------------------------------------------------------------
 //--------------LEITURA DO ARQUIVO
@@ -31,6 +42,7 @@ void separa()
 void le_dados(int valor)
 {
     char *result;
+    int i;
 
     if (valor == 0)
     {
@@ -88,6 +100,10 @@ void le_dados(int valor)
                 separa(); //lixo
                 separa();
                 strcpy(documento[tot], tmp);
+                for (i = 0; i <= tot; i++)
+                {
+                    status_cliente[i] = true;
+                }
             }
 
             if (valor == 1)
@@ -104,6 +120,10 @@ void le_dados(int valor)
                 strcpy(valor_p[tot], tmp);
                 separa();
                 strcpy(codbanco[tot], tmp);
+                for (i = 0; i <= tot; i++)
+                {
+                    status_parcela[i] = true;
+                }
             }
             tot++;
         }
@@ -114,19 +134,38 @@ void le_dados(int valor)
 
 //----------------------------------------------------------------------------
 //--------MOSTRADORES
-void mostra_info_parcela(int valor)
+void mostra_info_parcela()
 {
-    printf("---------------------------------------------------DADOS DAS PARCELAS---------------------------------------------------\n");
-    printf(" ID    ID CLIENTE   VALOR      DATA DE VENCIMENTO     DATA DE PAGAMENTO      ESTADO       TELEFONE(S)              DOCUMENTO\n", idparcela[valor]);
-    printf("    VALOR:                  %s\n", valor_p[valor]);
-    printf("    DATA DE VENCIMENTO:     %s\n", datavenc[valor]);
-    if (codbanco[valor] == "0")
+    int x;
+
+    system("cls");
+    printf("------------------------------------------------DADOS DAS PARCELAS------------------------------------------------\n");
+    printf(" ID       CLIENTE    VALOR      DATA DE VENCIMENTO    DATA DE PAGAMENTO   CÓD BANCO   BANCO\n");
+    for (x = 0; x <= tot; x++)
     {
-        printf("    STATUS:        PAGO EM DINHEIRO!", valor_p[valor]);
-    }
-    else
-    {
-        printf("    CÓDIGO DO BANCO:        %s", codbanco[valor]);
+        if (status_parcela[x] == true)
+        {
+            if (strcmp(codbanco[x], "0") == 0)
+            {
+                printf(" %-9s%-11s%-11s%-22s%-20s%-12s%s\n", idparcela[x], idcliente_p[x], valor_p[x], datavenc[x], datapag[x], codbanco[x], bancos[0]);
+            }
+            if (strcmp(codbanco[x], "001") == 0)
+            {
+                printf(" %-9s%-11s%-11s%-22s%-20s%-12s%s\n", idparcela[x], idcliente_p[x], valor_p[x], datavenc[x], datapag[x], codbanco[x], bancos[1]);
+            }
+            if (strcmp(codbanco[x], "104") == 0)
+            {
+                printf(" %-9s%-11s%-11s%-22s%-20s%-12s%s\n", idparcela[x], idcliente_p[x], valor_p[x], datavenc[x], datapag[x], codbanco[x], bancos[2]);
+            }
+            if (strcmp(codbanco[x], "237") == 0)
+            {
+                printf(" %-9s%-11s%-11s%-22s%-20s%-12s%s\n", idparcela[x], idcliente_p[x], valor_p[x], datavenc[x], datapag[x], codbanco[x], bancos[3]);
+            }
+            if (strcmp(codbanco[x], "260") == 0)
+            {
+                printf(" %-9s%-11s%-11s%-22s%-20s%-12s%s\n", idparcela[x], idcliente_p[x], valor_p[x], datavenc[x], datapag[x], codbanco[x], bancos[4]);
+            }
+        }
     }
     printf("\n");
     printf("\n");
@@ -134,15 +173,19 @@ void mostra_info_parcela(int valor)
     system("cls");
 }
 
-void mostra_info_cliente(int valor)
+void mostra_info_cliente()
 {
     int x;
 
     system("cls");
     printf("---------------------------------------------------DADOS DOS CLIENTES---------------------------------------------------\n");
-    printf(" ID    NOME                                          CIDADE       ESTADO       TELEFONE(S)              DOCUMENTO\n");
-    for(x=0;x<=tot;x++){
-        printf(" %s    %s                                            %s           %s           %s                       %s", idcliente[x], nome[x], cidade[x], uf[x], telefone[x], documento[x]);
+    printf(" ID    NOME                    CIDADE                  UF   TELEFONE(S)                        DOCUMENTO\n");
+    for (x = 0; x <= tot; x++)
+    {
+        if (status_cliente[x] == true)
+        {
+            printf(" %s  %-24s%-24s%-5s%-35s%s\n", idcliente[x], nome[x], cidade[x], uf[x], telefone[x], documento[x]);
+        }
     }
     printf("\n");
     printf("\n");
@@ -161,15 +204,6 @@ void mostra_tudo()
         printf("%s %s %s %s %s %s\n", idparcela[x], idcliente_p[x], datavenc[x], datapag[x], valor_p[x], codbanco[x]);
     }
 }
-
-void mostra_data()
-{
-    int i;
-    for (i = 0; i <= tot; i++)
-    {
-        printf("%s\n", datavenc[i]);
-    }
-}
 //----------------------------------------------------------------------------
 //--------------------BUSCAS
 void busca_parcela(char busca[10])
@@ -179,7 +213,7 @@ void busca_parcela(char busca[10])
     {
         if (strcmp(busca, idparcela[i]) == 0)
         {
-            mostra_info_parcela(i);
+            mostra_info_parcela();
         }
     }
 }
@@ -191,7 +225,7 @@ void busca_cliente(char busca[30])
     {
         if (strcmp(busca, idcliente[i]) == 0)
         {
-            mostra_info_cliente(i);
+            mostra_info_cliente();
             system("pause");
             system("cls");
         }
@@ -348,24 +382,30 @@ void ordenarParcelasEmOrdemCrescente()
 
 void listacliente()
 {
-    int b1;
-    while (b1 != 3)
+    int b8;
+    b8 = 0;
+    while (b8 != 4)
     {
         printf("-------------------------------------\n");
         printf("   CLASSIFICAR POR ID:                 [1]\n");
         printf("   CLASSIFICAR POR ORDEM ALFABETICA:   [2]\n");
-        printf("   VOLTAR:                             [3]\n");
+        printf("   MOSTRAR TUDO                        [3]\n");
+        printf("   VOLTAR:                             [4]\n");
         printf("-------------------------------------\n");
         printf("\n");
         printf("\n");
         printf("DIGITE: ");
-        scanf("%i", &b1);
+        scanf("%i", &b8);
 
-        if (b1 == 1)
+        if (b8 == 1)
         {
         }
-        if (b1 == 2)
+        if (b8 == 2)
         {
+        }
+        if (b8 == 3)
+        {
+            mostra_info_cliente();
         }
     }
 }
@@ -374,26 +414,30 @@ void listacliente()
 
 void listaparcela()
 {
-    int b1;
-    while (b1 != 3)
+    int b8;
+    b8 = 0;
+    while (b8 != 4)
     {
         printf("-------------------------------------\n");
         printf("   CLASSIFICAR POR ID DA PARCELA:       [1]\n");
         printf("   CLASSIFICAR POR DATA DE VENCIMENTO:  [2]\n");
-        printf("   VOLTAR:                              [3]\n");
+        printf("   MOSTRAR TUDO                         [3]\n");
+        printf("   VOLTAR:                              [4]\n");
         printf("-------------------------------------\n");
         printf("\n");
         printf("\n");
         printf("DIGITE: ");
-        scanf("%i", &b1);
+        scanf("%i", &b8);
 
-        if (b1 == 1)
+        if (b8 == 1)
         {
-            ordenarParcelasEmOrdemCrescente();
-
         }
-        if (b1 == 2)
+        if (b8 == 2)
         {
+        }
+        if (b8 == 3)
+        {
+            mostra_info_parcela();
         }
     }
 }
@@ -437,12 +481,11 @@ void menu()
         if (b1 == 3)
         {
             system("cls");
-            altera_dados();
+            listaparcela();
         }
         if (b1 == 3)
         {
             system("cls");
-            mostra_data();
             printf("\n");
             printf("\n");
             system("pause");
@@ -454,9 +497,13 @@ void menu()
 //----------------------------------------------------------------------------
 int main()
 {
+    UINT CPAGE_UTF8 = 65001;
+    UINT CPAGE_DEFAULT = GetConsoleOutputCP();
+    SetConsoleOutputCP(CPAGE_UTF8);
     system("cls");
     le_dados(0);
     le_dados(1);
+    enche_bancos();
     mostra_tudo();
     system("cls");
     printf("DADOS IMPORTADOS COM SUCESSO!\n");
