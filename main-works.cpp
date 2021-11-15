@@ -10,19 +10,10 @@
 char /*clientes*/ idcliente[200][10], nome[200][50], cidade[200][30], uf[200][3], documento[200][20], telefone[200][50];
 char linha[200], tmp[200];
 char /*parcelas*/ idparcela[200][50], idcliente_p[200][50], datavenc[200][50], datapag[200][50], valor_p[200][50], codbanco[200][50];
-char /*bancos*/ bancos[5][10];
-int tot, p, col;
+char /*bancos*/ bancos[5][20];
+int tot, p, col, codbancoi[200];
 bool status_cliente[200], status_parcela[200];
 FILE *file;
-
-void enche_bancos()
-{
-    strcpy(bancos[0], "DINHEIRO");
-    strcpy(bancos[1], "Banco Do Brasil");
-    strcpy(bancos[2], "Caixa Econômica");
-    strcpy(bancos[3], "Bradesco");
-    strcpy(bancos[4], "Nubank");
-}
 
 //----------------------------------------------------------------------------
 //--------------LEITURA DO ARQUIVO
@@ -124,6 +115,15 @@ void le_dados(int valor)
                 {
                     status_parcela[i] = true;
                 }
+                for (i = 0; i <= tot; i++)
+                {
+                    codbancoi[i] = atoi(codbanco[i]);
+                }
+                strcpy(bancos[0], "DINHEIRO");
+                strcpy(bancos[1], "Banco Do Brasil");
+                strcpy(bancos[2], "Caixa Econômica");
+                strcpy(bancos[3], "Bradesco");
+                strcpy(bancos[4], "Nubank");
             }
             tot++;
         }
@@ -145,25 +145,25 @@ void mostra_info_parcela()
     {
         if (status_parcela[x] == true)
         {
-            if (strcmp(codbanco[x], "0") == 0)
+            if (codbancoi[x] == 0)
             {
-                printf(" %-9s%-11s%-11s%-22s%-20s%-12s%s\n", idparcela[x], idcliente_p[x], valor_p[x], datavenc[x], datapag[x], codbanco[x], bancos[0]);
+                printf(" %-9s%-11s%-11s%-22s%-20s%-12s%-15s\n", idparcela[x], idcliente_p[x], valor_p[x], datavenc[x], datapag[x], codbanco[x], bancos[0]);
             }
-            if (strcmp(codbanco[x], "001") == 0)
+            if (codbancoi[x] == 001)
             {
-                printf(" %-9s%-11s%-11s%-22s%-20s%-12s%s\n", idparcela[x], idcliente_p[x], valor_p[x], datavenc[x], datapag[x], codbanco[x], bancos[1]);
+                printf(" %-9s%-11s%-11s%-22s%-20s%-12s%-15s\n", idparcela[x], idcliente_p[x], valor_p[x], datavenc[x], datapag[x], codbanco[x], bancos[1]);
             }
-            if (strcmp(codbanco[x], "104") == 0)
+            if (codbancoi[x] == 104)
             {
-                printf(" %-9s%-11s%-11s%-22s%-20s%-12s%s\n", idparcela[x], idcliente_p[x], valor_p[x], datavenc[x], datapag[x], codbanco[x], bancos[2]);
+                printf(" %-9s%-11s%-11s%-22s%-20s%-12s%-15s\n", idparcela[x], idcliente_p[x], valor_p[x], datavenc[x], datapag[x], codbanco[x], bancos[2]);
             }
-            if (strcmp(codbanco[x], "237") == 0)
+            if (codbancoi[x] == 237)
             {
-                printf(" %-9s%-11s%-11s%-22s%-20s%-12s%s\n", idparcela[x], idcliente_p[x], valor_p[x], datavenc[x], datapag[x], codbanco[x], bancos[3]);
+                printf(" %-9s%-11s%-11s%-22s%-20s%-12s%-15s\n", idparcela[x], idcliente_p[x], valor_p[x], datavenc[x], datapag[x], codbanco[x], bancos[3]);
             }
-            if (strcmp(codbanco[x], "260") == 0)
+            if (codbancoi[x] == 260)
             {
-                printf(" %-9s%-11s%-11s%-22s%-20s%-12s%s\n", idparcela[x], idcliente_p[x], valor_p[x], datavenc[x], datapag[x], codbanco[x], bancos[4]);
+                printf(" %-9s%-11s%-11s%-22s%-20s%-12s%-15s\n", idparcela[x], idcliente_p[x], valor_p[x], datavenc[x], datapag[x], codbanco[x], bancos[4]);
             }
         }
     }
@@ -503,7 +503,6 @@ int main()
     system("cls");
     le_dados(0);
     le_dados(1);
-    enche_bancos();
     mostra_tudo();
     system("cls");
     printf("DADOS IMPORTADOS COM SUCESSO!\n");
