@@ -1,0 +1,21 @@
+async filterPokeApi() {
+  const data = await this.getPokemonsFetch();
+  let pokemons: PokemonTypes;
+  pokemons = data.map((pokemon) => {
+    // Get 4 random moves from the moves array
+    const randomMoves = pokemon.moves
+      .map((move) => move.move.name)
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 4);
+    return {
+      nome: pokemon.name,
+      tipo: pokemon.types.map((type) => type.type.name),
+      status: pokemon.stats.map((stat) => stat.stat.name),
+      numero_dex: pokemon.id,
+      altura: pokemon.height,
+      peso: pokemon.weight,
+      moves: randomMoves,
+    };
+  });
+  return pokemons;
+}
